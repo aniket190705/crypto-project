@@ -6,6 +6,7 @@ import { Server } from "socket.io";
 import connectDB from "./config/db.js";
 import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/user.js";
+import portfolioRoutes from "./routes/portfolio.js";
 
 
 
@@ -26,9 +27,12 @@ const io = new Server(server, {
 app.use(cors());
 app.use(express.json());
 app.use("/api/auth", authRoutes);
+app.use("/api/portfolio", portfolioRoutes);
+
 app.get("/api/ping", (req, res) => {
   res.send("✅ Backend is working!");
 });
+
 
 io.on("connection", (socket) => {
   console.log("🔌 Client connected:", socket.id);
