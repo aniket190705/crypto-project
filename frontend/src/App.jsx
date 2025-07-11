@@ -11,6 +11,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import Portfolio from "./Components/Portfolio";
 
 const socket = io("http://localhost:5000"); // replace with your backend URL
 
@@ -185,7 +186,7 @@ export default function App() {
       </header>
 
       {activePage === "dashboard" && <DashboardPage />}
-      {activePage === "portfolio" && <PortfolioPage />}
+      {activePage === "portfolio" && <Portfolio />}
       {activePage === "leaderboard" && <LeaderboardPage />}
       {activePage === "news" && <NewsPage />}
     </div>
