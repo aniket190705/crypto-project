@@ -1,23 +1,18 @@
-// models/Portfolio.js
 import mongoose from "mongoose";
 
-const PortfolioSchema = new mongoose.Schema({
-    userId: {
-        type: String,
-        required: true,
-    },
-    symbol: {
-        type: String,
-        required: true,
-    },
-    quantity: {
-        type: Number,
-        required: true,
-    },
-    buyPrice: {
-        type: Number,
-        required: true,
-    },
+const coinSchema = new mongoose.Schema({
+    id: String,
+    quantity: Number,
+    buyPrice: Number,
 });
 
-export default mongoose.model("Portfolio", PortfolioSchema);
+const portfolioSchema = new mongoose.Schema({
+    userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User", // if you have a user model
+        required: true,
+    },
+    coins: [coinSchema],
+});
+
+export default mongoose.model("Portfolio", portfolioSchema);
