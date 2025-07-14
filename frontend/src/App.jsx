@@ -1,6 +1,5 @@
-// CryptoStack Frontend using React + Vite + TailwindCSS
-
-import { useEffect, useState } from "react";
+import News from "./Components/News";
+import { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { io } from "socket.io-client";
 import {
@@ -22,44 +21,66 @@ export default function App() {
   const [message, setMessage] = useState("");
   const [chat, setChat] = useState([]);
   const [activePage, setActivePage] = useState("dashboard");
+  const inputRef = useRef(null);
 
+  // Fetch coins on first load
   useEffect(() => {
     fetchCoins();
+  }, []);
+
+  // Join room and fetch price when selectedCoin changes
+  useEffect(() => {
+    setChat([]); // Clear previous chat
     fetchPriceHistory(selectedCoin);
-
     socket.emit("joinRoom", selectedCoin);
-
-    socket.on("receiveMessage", (msg) => {
-      setChat((prev) => [...prev, msg]);
-    });
-
-    return () => {
-      socket.off("receiveMessage");
-    };
   }, [selectedCoin]);
 
-  const fetchCoins = async () => {
-    const { data } = await axios.get(
-      "https://api.coingecko.com/api/v3/coins/list"
-    );
-    setCoins(data.slice(0, 50));
-  };
+  // Set up socket listener ONCE
+  useEffect(() => {
+    const handleMessage = (msg) => {
+      setChat((prev) => [...prev, msg]);
+    };
 
-  const fetchPriceHistory = async (coin) => {
+    socket.on("receiveMessage", handleMessage);
+
+    return () => {
+      socket.off("receiveMessage", handleMessage);
+    };
+  }, []);
+
+const fetchCoins = async () => {
+  const { data } = await axios.get("http://localhost:5000/api/market/coins");
+  setCoins(data.slice(0, 50));
+};
+
+const fetchPriceHistory = async (coin) => {
+  try {
     const { data } = await axios.get(
-      `https://api.coingecko.com/api/v3/coins/${coin}/market_chart?vs_currency=usd&days=7`
+      `http://localhost:5000/api/market/price-history/${coin}`
     );
-    const formatted = data.prices.map(([time, price]) => ({
-      time: new Date(time).toLocaleDateString(),
-      price,
+
+    // `data` is an array, not an object with `.prices`
+    if (!Array.isArray(data)) {
+      console.error("Unexpected data format:", data);
+      return;
+    }
+
+    const formatted = data.map((item) => ({
+      time: new Date(item.timestamp).toLocaleDateString(), // or item.time
+      price: item.price,
     }));
-    setPrices(formatted);
-  };
 
-  const sendMessage = () => {
-    if (!message) return;
+    setPrices(formatted);
+  } catch (error) {
+    console.error("Error fetching price history:", error);
+  }
+};
+  const handleSendMessage = () => {
+    if (!message.trim()) return;
     socket.emit("sendMessage", { room: selectedCoin, message });
+    setChat((prev) => [...prev, message]); // Optional local push
     setMessage("");
+    inputRef.current?.focus(); // retain focus
   };
 
   const DashboardPage = () => (
@@ -109,14 +130,16 @@ export default function App() {
         </div>
         <div className="flex">
           <input
+            ref={inputRef}
             type="text"
-            className="flex-1 p-2 border rounded-l"
+            className="flex-1 p-2 border rounded-l outline-none"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Type a message"
+            autoFocus
           />
           <button
-            onClick={sendMessage}
+            onClick={handleSendMessage}
             className="bg-blue-600 text-white px-4 rounded-r"
           >
             Send
@@ -129,9 +152,7 @@ export default function App() {
   const PortfolioPage = () => (
     <div>
       <h2 className="text-2xl font-bold mb-4">My Portfolio</h2>
-      <p className="text-gray-600">
-        Display user trades, current value, profit/loss here.
-      </p>
+      <Portfolio />
     </div>
   );
 
@@ -147,9 +168,7 @@ export default function App() {
   const NewsPage = () => (
     <div>
       <h2 className="text-2xl font-bold mb-4">Crypto News</h2>
-      <p className="text-gray-600">
-        Fetch and display latest crypto-related news here.
-      </p>
+    <News />
     </div>
   );
 
@@ -186,7 +205,7 @@ export default function App() {
       </header>
 
       {activePage === "dashboard" && <DashboardPage />}
-      {activePage === "portfolio" && <Portfolio />}
+      {activePage === "portfolio" && <PortfolioPage />}
       {activePage === "leaderboard" && <LeaderboardPage />}
       {activePage === "news" && <NewsPage />}
     </div>

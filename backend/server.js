@@ -7,6 +7,8 @@ import connectDB from "./config/db.js";
 import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/user.js";
 import portfolioRoutes from "./routes/portfolio.js";
+import newsRoutes from "./routes/news.js";
+import marketRoutes from "./routes/market.js"; 
 
 
 
@@ -15,7 +17,8 @@ dotenv.config();
 connectDB();
 
 const app = express();
-app.use("/api/user", userRoutes);
+
+
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
@@ -28,7 +31,9 @@ app.use(cors());
 app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/portfolio", portfolioRoutes);
-
+app.use("/api/news", newsRoutes);
+app.use("/api/user", userRoutes);
+app.use("/api/market", marketRoutes);
 app.get("/api/ping", (req, res) => {
   res.send("✅ Backend is working!");
 });
