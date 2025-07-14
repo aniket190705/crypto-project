@@ -37,6 +37,8 @@ app.use("/api/market", marketRoutes);
 app.get("/api/ping", (req, res) => {
   res.send("✅ Backend is working!");
 });
+import priceRoutes from "./routes/prices.js";
+app.use("/api/prices", priceRoutes);
 
 
 io.on("connection", (socket) => {

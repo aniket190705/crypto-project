@@ -1,126 +1,181 @@
-// src/components/Portfolio.jsx
 import { useEffect, useState } from "react";
 import axios from "axios";
 
-export default function Portfolio() {
+const Portfolio = () => {
   const [portfolio, setPortfolio] = useState([]);
-  const [form, setForm] = useState({
-    symbol: "",
-    quantity: "",
-    buyPrice: "",
-  });
+  const [coin, setCoin] = useState("bitcoin");
+  const [quantity, setQuantity] = useState("");
+  const [buyPrice, setBuyPrice] = useState("");
+  const [prices, setPrices] = useState({});
+  const [totalInvestment, setTotalInvestment] = useState(0);
 
-  const fetchPortfolio = async () => {
-    try {
-      const res = await axios.get("http://localhost:5000/api/portfolio");
-      setPortfolio(res.data);
-    } catch (err) {
-      console.error("Error fetching portfolio:", err);
-    }
-  };
-
-  const handleChange = (e) => {
-    setForm((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      await axios.post("http://localhost:5000/api/portfolio", {
-        symbol: form.symbol.toLowerCase(),
-        quantity: parseFloat(form.quantity),
-        buyPrice: parseFloat(form.buyPrice),
-      });
-      setForm({ symbol: "", quantity: "", buyPrice: "" });
-      fetchPortfolio();
-    } catch (err) {
-      console.error("Error adding coin:", err);
-    }
-  };
+  const coinsList = [
+    "bitcoin",
+    "ethereum",
+    "solana",
+    "ripple",
+    "litecoin",
+    "cardano",
+    "dogecoin",
+    "polkadot",
+  ];
+  const userId = "demo-user"; // Replace with real user id if logged in
 
   useEffect(() => {
-    fetchPortfolio();
+    fetchPrices();
+    axios
+      .get(`http://localhost:5000/api/portfolio/${userId}`)
+      .then((res) => setPortfolio(res.data))
+      .catch((err) => console.error("Load error:", err));
   }, []);
 
+  useEffect(() => {
+    fetchPrices();
+  }, []);
+
+  useEffect(() => {
+    // Recalculate total investment whenever portfolio changes
+    const total = portfolio.reduce(
+      (sum, coin) => sum + coin.buyPrice * coin.quantity,
+      0
+    );
+    setTotalInvestment(total);
+  }, [portfolio]);
+
+  const fetchPrices = async () => {
+    try {
+      const res = await axios.get("http://localhost:5000/api/prices");
+      setPrices(res.data);
+    } catch (err) {
+      console.error("Failed to fetch prices:", err.message);
+    }
+  };
+
+  const handleAdd = () => {
+    if (!coin || !quantity || !buyPrice) return;
+
+    const exists = portfolio.find((c) => c.id === coin);
+    if (exists) {
+      alert("Coin already in portfolio");
+      return;
+    }
+
+    const newCoin = {
+      id: coin,
+      quantity: parseFloat(quantity),
+      buyPrice: parseFloat(buyPrice),
+    };
+    setPortfolio([...portfolio, newCoin]);
+    setQuantity("");
+    setBuyPrice("");
+  };
+
+  const getCurrentPrice = (coinId) => prices[coinId]?.inr || 0;
+
   return (
-    <div>
+    <div className="p-6">
       <h2 className="text-2xl font-bold mb-4">📊 My Portfolio</h2>
 
-      <form
-        onSubmit={handleSubmit}
-        className="mb-6 p-4 border rounded bg-gray-50 space-y-2"
-      >
-        <input
-          type="text"
-          name="symbol"
-          value={form.symbol}
-          onChange={handleChange}
-          placeholder="Symbol (e.g. bitcoin)"
-          required
-          className="w-full p-2 border rounded"
-        />
+      <div className="mb-6 grid md:grid-cols-3 gap-4">
+        <select
+          value={coin}
+          onChange={(e) => setCoin(e.target.value)}
+          className="p-2 border rounded"
+        >
+          {coinsList.map((c) => (
+            <option key={c} value={c}>
+              {c.toUpperCase()}
+            </option>
+          ))}
+        </select>
+
         <input
           type="number"
-          name="quantity"
-          value={form.quantity}
-          onChange={handleChange}
           placeholder="Quantity"
-          required
-          className="w-full p-2 border rounded"
+          value={quantity}
+          onChange={(e) => setQuantity(e.target.value)}
+          className="p-2 border rounded"
         />
         <input
           type="number"
-          name="buyPrice"
-          value={form.buyPrice}
-          onChange={handleChange}
-          placeholder="Buy Price"
-          required
-          className="w-full p-2 border rounded"
+          placeholder="Buy Price (₹)"
+          value={buyPrice}
+          onChange={(e) => setBuyPrice(e.target.value)}
+          className="p-2 border rounded"
         />
         <button
-          type="submit"
-          className="bg-blue-600 text-white px-4 py-2 rounded"
+          onClick={handleAdd}
+          className="bg-blue-600 text-white px-4 py-2 rounded mt-2 md:mt-0"
         >
-          ➕ Add
+          ➕ Add to Portfolio
         </button>
-      </form>
+      </div>
 
-      {portfolio.length === 0 ? (
-        <p>No entries yet.</p>
-      ) : (
-        <table className="w-full text-left border-t border-gray-300">
-          <thead>
+      <p className="text-lg font-semibold mb-4">
+        Total Investment: ₹{totalInvestment.toFixed(2)}
+      </p>
+
+      <div className="overflow-x-auto">
+        <table className="w-full border">
+          <thead className="bg-gray-200">
             <tr>
-              <th>Coin</th>
-              <th>Qty</th>
-              <th>Buy</th>
-              <th>Current</th>
-              <th>P/L</th>
+              <th className="p-2 text-left">Coin</th>
+              <th className="p-2 text-right">Quantity</th>
+              <th className="p-2 text-right">Buy Price (₹)</th>
+              <th className="p-2 text-right">Invested ₹</th>
+              <th className="p-2 text-right">Current Price (₹)</th>
+              <th className="p-2 text-right">Value ₹</th>
+              <th className="p-2 text-right">P/L %</th>
+              <th className="p-2 text-right">Portfolio %</th>
+              <th className="p-2 text-right">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {portfolio.map((coin) => (
-              <tr key={coin._id}>
-                <td>{coin.symbol}</td>
-                <td>{coin.quantity}</td>
-                <td>${coin.buyPrice}</td>
-                <td>${coin.currentPrice}</td>
-                <td
-                  style={{
-                    color: coin.profitLoss >= 0 ? "green" : "red",
-                    fontWeight: "bold",
-                  }}
-                >
-                  ${coin.profitLoss.toFixed(2)}
-                </td>
-              </tr>
-            ))}
+            {portfolio.map((coin) => {
+              const invested = coin.buyPrice * coin.quantity;
+              const currentPrice = getCurrentPrice(coin.id);
+              const value = currentPrice * coin.quantity;
+              const profitLossPercent = ((value - invested) / invested) * 100;
+              const portfolioPercent = (invested / totalInvestment) * 100;
+
+              return (
+                <tr key={coin.id} className="border-t">
+                  <td className="p-2">{coin.id.toUpperCase()}</td>
+                  <td className="p-2 text-right">{coin.quantity}</td>
+                  <td className="p-2 text-right">₹{coin.buyPrice}</td>
+                  <td className="p-2 text-right">₹{invested.toFixed(2)}</td>
+                  <td className="p-2 text-right">₹{currentPrice}</td>
+                  <td className="p-2 text-right">₹{value.toFixed(2)}</td>
+                  <td
+                    className={`p-2 text-right ${
+                      profitLossPercent >= 0 ? "text-green-600" : "text-red-600"
+                    }`}
+                  >
+                    {profitLossPercent.toFixed(2)}%
+                  </td>
+                  <td className="p-2 text-right">
+                    {portfolioPercent.toFixed(2)}%
+                  </td>
+                  <td className="p-2 text-right">
+                    <button
+                      onClick={() =>
+                        setPortfolio((prev) =>
+                          prev.filter((c) => c.id !== coin.id)
+                        )
+                      }
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      ❌
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
-      )}
+      </div>
     </div>
   );
-}
+};
+
+export default Portfolio;
