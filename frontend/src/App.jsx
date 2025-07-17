@@ -11,6 +11,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import Portfolio from "./Components/Portfolio";
+import Leaderboard from "./Components/Leaderboard"; // ✅ correct path
 
 const socket = io("http://localhost:5000"); // replace with your backend URL
 
@@ -22,6 +23,7 @@ export default function App() {
   const [chat, setChat] = useState([]);
   const [activePage, setActivePage] = useState("dashboard");
   const inputRef = useRef(null);
+  const [leaderboard, setLeaderboard] = useState([]);
 
   // Fetch coins on first load
   useEffect(() => {
@@ -47,7 +49,18 @@ export default function App() {
       socket.off("receiveMessage", handleMessage);
     };
   }, []);
-
+useEffect(() => {
+  const fetchLeaderboard = async () => {
+    const { data } = await axios.get("http://localhost:5000/api/leaderboard");
+    setLeaderboard(data);
+  };
+  fetchLeaderboard();
+}, []);
+  const dummyLeaderboard = [
+    { username: "Alice", profitPercentage: 120 },
+    { username: "Bob", profitPercentage: 110 },
+    { username: "Charlie", profitPercentage: 95 },
+  ];
 const fetchCoins = async () => {
   const { data } = await axios.get("http://localhost:5000/api/market/coins");
   setCoins(data.slice(0, 50));
@@ -181,8 +194,8 @@ const fetchPriceHistory = async (coin) => {
             onClick={() => setActivePage("dashboard")}
             className="font-medium hover:underline"
           >
-            Dashboard
-          </button>
+              Dashboard
+            </button>
           <button
             onClick={() => setActivePage("portfolio")}
             className="font-medium hover:underline"
@@ -208,6 +221,8 @@ const fetchPriceHistory = async (coin) => {
       {activePage === "portfolio" && <PortfolioPage />}
       {activePage === "leaderboard" && <LeaderboardPage />}
       {activePage === "news" && <NewsPage />}
+      {activePage === "leaderboard" && <Leaderboard data={dummyLeaderboard} />}
+
     </div>
   );
 }

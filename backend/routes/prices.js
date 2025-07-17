@@ -7,7 +7,7 @@ const router = express.Router();
 let cachedPrices = null;
 let lastFetched = 0;
 const CACHE_DURATION = 60 * 1000; // 1 minute
-
+const response = await axios.get('https://api.coingecko.com/api/v3/coins/bitcoin');
 router.get("/", async (req, res) => {
     const now = Date.now();
 
