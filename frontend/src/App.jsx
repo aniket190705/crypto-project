@@ -11,8 +11,9 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import Portfolio from "./Components/Portfolio";
-import Leaderboard from "./Components/Leaderboard"; // ✅ correct path
-
+import Leaderboard from "./Components/Leaderboard";
+import Register from "./Components/Auth/Register";
+import Login from "./Components/Auth/Login";
 const socket = io("http://localhost:5000"); // replace with your backend URL
 
 export default function App() {
@@ -49,45 +50,40 @@ export default function App() {
       socket.off("receiveMessage", handleMessage);
     };
   }, []);
-useEffect(() => {
-  const fetchLeaderboard = async () => {
-    const { data } = await axios.get("http://localhost:5000/api/leaderboard");
-    setLeaderboard(data);
+  useEffect(() => {
+    const fetchLeaderboard = async () => {
+      const { data } = await axios.get("http://localhost:5000/api/leaderboard");
+      setLeaderboard(data);
+    };
+    fetchLeaderboard();
+  }, []);
+  const fetchCoins = async () => {
+    const { data } = await axios.get("http://localhost:5000/api/market/coins");
+    setCoins(data.slice(0, 50));
   };
-  fetchLeaderboard();
-}, []);
-  const dummyLeaderboard = [
-    { username: "Alice", profitPercentage: 120 },
-    { username: "Bob", profitPercentage: 110 },
-    { username: "Charlie", profitPercentage: 95 },
-  ];
-const fetchCoins = async () => {
-  const { data } = await axios.get("http://localhost:5000/api/market/coins");
-  setCoins(data.slice(0, 50));
-};
 
-const fetchPriceHistory = async (coin) => {
-  try {
-    const { data } = await axios.get(
-      `http://localhost:5000/api/market/price-history/${coin}`
-    );
+  const fetchPriceHistory = async (coin) => {
+    try {
+      const { data } = await axios.get(
+        `http://localhost:5000/api/market/price-history/${coin}`
+      );
 
-    // `data` is an array, not an object with `.prices`
-    if (!Array.isArray(data)) {
-      console.error("Unexpected data format:", data);
-      return;
+      // `data` is an array, not an object with `.prices`
+      if (!Array.isArray(data)) {
+        console.error("Unexpected data format:", data);
+        return;
+      }
+
+      const formatted = data.map((item) => ({
+        time: new Date(item.timestamp).toLocaleDateString(), // or item.time
+        price: item.price,
+      }));
+
+      setPrices(formatted);
+    } catch (error) {
+      console.error("Error fetching price history:", error);
     }
-
-    const formatted = data.map((item) => ({
-      time: new Date(item.timestamp).toLocaleDateString(), // or item.time
-      price: item.price,
-    }));
-
-    setPrices(formatted);
-  } catch (error) {
-    console.error("Error fetching price history:", error);
-  }
-};
+  };
   const handleSendMessage = () => {
     if (!message.trim()) return;
     socket.emit("sendMessage", { room: selectedCoin, message });
@@ -168,20 +164,10 @@ const fetchPriceHistory = async (coin) => {
       <Portfolio />
     </div>
   );
-
-  const LeaderboardPage = () => (
-    <div>
-      <h2 className="text-2xl font-bold mb-4">Leaderboard</h2>
-      <p className="text-gray-600">
-        List of top traders by ROI or total profit.
-      </p>
-    </div>
-  );
-
   const NewsPage = () => (
     <div>
       <h2 className="text-2xl font-bold mb-4">Crypto News</h2>
-    <News />
+      <News />
     </div>
   );
 
@@ -194,8 +180,8 @@ const fetchPriceHistory = async (coin) => {
             onClick={() => setActivePage("dashboard")}
             className="font-medium hover:underline"
           >
-              Dashboard
-            </button>
+            Dashboard
+          </button>
           <button
             onClick={() => setActivePage("portfolio")}
             className="font-medium hover:underline"
@@ -214,14 +200,28 @@ const fetchPriceHistory = async (coin) => {
           >
             News
           </button>
+          <button
+            onClick={() => setActivePage("login")}
+            className="font-medium hover:underline"
+          >
+            Login
+          </button>
+          <button
+            onClick={() => setActivePage("register")}
+            className="font-medium hover:underline"
+          >
+            Register
+          </button>
         </nav>
       </header>
 
       {activePage === "dashboard" && <DashboardPage />}
       {activePage === "portfolio" && <PortfolioPage />}
-      {activePage === "leaderboard" && <LeaderboardPage />}
+      {activePage === "leaderboard" && <Leaderboard data={leaderboard} />}
       {activePage === "news" && <NewsPage />}
-      {activePage === "leaderboard" && <Leaderboard data={dummyLeaderboard} />}
+      {activePage === "login" && <Login />}
+      {activePage === "register" && <Register />}
+
 
     </div>
   );

@@ -1,11 +1,12 @@
 import express from "express";
+import mongoose from "mongoose";    
 import cors from "cors";
 import dotenv from "dotenv";
 import http from "http";
 import { Server } from "socket.io";
 import connectDB from "./config/db.js";
 import authRoutes from "./routes/auth.js";
-import userRoutes from "./routes/user.js";
+import userRoutes from "./routes/User.js";
 import portfolioRoutes from "./routes/portfolio.js";
 import newsRoutes from "./routes/news.js";
 import marketRoutes from "./routes/market.js"; 
@@ -60,3 +61,6 @@ const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
+mongoose.connect(process.env.MONGO_URI || "mongodb://localhost:27017/cryptostack")
+  .then(() => app.listen(5000, () => console.log("Server running on port 5000")))
+  .catch((err) => console.error(err));
