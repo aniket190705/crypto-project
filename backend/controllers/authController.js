@@ -5,7 +5,8 @@ import jwt from "jsonwebtoken";
 // REGISTER CONTROLLER
 export const register = async (req, res) => {
   const { username, email, password } = req.body;
-
+  console.log("Received registration data:", req.body);
+  console.log("Register attempt with email:", email, "and username:", username);
   try {
     // Check if user already exists
     const existingUser = await User.findOne({ email });
@@ -14,15 +15,17 @@ export const register = async (req, res) => {
     }
 
     // Hash password
-    const salt = await bcrypt.genSalt(10);
+    const salt = await bcrypt.genSalt(7);
     const hashedPassword = await bcrypt.hash(password, salt);
-
+    console.log("Hashed password:", hashedPassword);
     // Create new user
     const newUser = await User.create({
       username,
       email,
       password: hashedPassword,
     });
+
+    console.log("New user created:", newUser);
 
     // Generate JWT
     const token = jwt.sign(
@@ -49,12 +52,15 @@ export const register = async (req, res) => {
 // LOGIN CONTROLLER
 export const login = async (req, res) => {
   const { email, password } = req.body;
-
+  console.log("Login attempt with email:", email, password);
   try {
     // Find user by email
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({ msg: "Invalid email or password" });
+    }
+    else {
+      console.log("User found:", user);
     }
 
     // Validate password

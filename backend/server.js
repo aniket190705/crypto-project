@@ -1,5 +1,5 @@
 import express from "express";
-import mongoose from "mongoose";    
+import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from "dotenv";
 import http from "http";
@@ -9,7 +9,7 @@ import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/User.js";
 import portfolioRoutes from "./routes/portfolio.js";
 import newsRoutes from "./routes/news.js";
-import marketRoutes from "./routes/market.js"; 
+import marketRoutes from "./routes/market.js";
 import leaderboardRoutes from './routes/leaderboard.js'; // ✅ use .js extension!
 dotenv.config();
 connectDB();

@@ -24,6 +24,7 @@ router.post("/", async (req, res) => {
 router.get("/:userId", async (req, res) => {
     try {
         const data = await Portfolio.findOne({ userId: req.params.userId });
+        console.log("Portfolio data:", data);
         res.json(data?.coins || []);
     } catch (err) {
         res.status(500).json({ error: "Failed to fetch portfolio" });

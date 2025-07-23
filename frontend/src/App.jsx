@@ -25,7 +25,7 @@ export default function App() {
   const [activePage, setActivePage] = useState("dashboard");
   const inputRef = useRef(null);
   const [leaderboard, setLeaderboard] = useState([]);
-
+  const [user, setUser] = useState(JSON.parse(localStorage.getItem("user")));
   // Fetch coins on first load
   useEffect(() => {
     fetchCoins();
@@ -175,6 +175,7 @@ export default function App() {
     <div className="p-6 max-w-6xl mx-auto">
       <header className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">CryptoStack</h1>
+        <h3>logged in as {user?.username}</h3>
         <nav className="space-x-4">
           <button
             onClick={() => setActivePage("dashboard")}
@@ -221,8 +222,6 @@ export default function App() {
       {activePage === "news" && <NewsPage />}
       {activePage === "login" && <Login />}
       {activePage === "register" && <Register />}
-
-
     </div>
   );
 }

@@ -19,14 +19,14 @@ const Portfolio = () => {
     "dogecoin",
     "polkadot",
   ];
-  const userId = "demo-user"; // Replace with real user id if logged in
+  const userId = JSON.parse(localStorage.getItem("user")).id; // Replace with real user id if logged in
 
   useEffect(() => {
     fetchPrices();
     axios
       .get(`http://localhost:5000/api/portfolio/${userId}`)
       .then((res) => setPortfolio(res.data))
-      .catch((err) => console.error("Load error:", err));
+      .catch((err) => console.log("Load error:", err));
   }, []);
 
   useEffect(() => {

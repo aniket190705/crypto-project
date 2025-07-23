@@ -3,13 +3,15 @@ import { useState } from "react";
 import API from "../../api";
 
 export default function Register() {
-  const [form, setForm] = useState({ name: "", email: "", password: "" });
+  const [form, setForm] = useState({ username: "", email: "", password: "" });
   const [msg, setMsg] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      console.log("Submitting registration form:", form);
       const res = await API.post("/auth/register", form);
+      console.log("Registration successful:", res.data);
       localStorage.setItem("token", res.data.token);
       setMsg("Registered successfully!");
     } catch (err) {
@@ -19,14 +21,17 @@ export default function Register() {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-900">
-      <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow-md w-80">
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white p-6 rounded shadow-md w-80"
+      >
         <h2 className="text-2xl font-bold mb-4">Register</h2>
         <input
           type="text"
-          placeholder="Name"
+          placeholder="Username"
           className="w-full mb-2 px-3 py-2 border rounded"
-          value={form.name}
-          onChange={(e) => setForm({ ...form, name: e.target.value })}
+          value={form.username}
+          onChange={(e) => setForm({ ...form, username: e.target.value })}
         />
         <input
           type="email"
@@ -42,7 +47,9 @@ export default function Register() {
           value={form.password}
           onChange={(e) => setForm({ ...form, password: e.target.value })}
         />
-        <button className="bg-blue-600 text-white w-full py-2 rounded">Register</button>
+        <button className="bg-blue-600 text-white w-full py-2 rounded">
+          Register
+        </button>
         {msg && <p className="mt-2 text-sm text-center text-red-600">{msg}</p>}
       </form>
     </div>
