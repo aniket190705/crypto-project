@@ -75,9 +75,10 @@ export default function App() {
       }
 
       const formatted = data.map((item) => ({
-        time: new Date(item.timestamp).toLocaleDateString(), // or item.time
+        time: item.time,  // Already formatted in backend
         price: item.price,
       }));
+
 
       setPrices(formatted);
     } catch (error) {
@@ -87,7 +88,6 @@ export default function App() {
   const handleSendMessage = () => {
     if (!message.trim()) return;
     socket.emit("sendMessage", { room: selectedCoin, message });
-    setChat((prev) => [...prev, message]); // Optional local push
     setMessage("");
     inputRef.current?.focus(); // retain focus
   };
