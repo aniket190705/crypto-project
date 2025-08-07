@@ -14,4 +14,3 @@ router.get('/', (req, res) => {
 });
 
 export default router; // ✅ This is the key line!
-console

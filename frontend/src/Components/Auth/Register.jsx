@@ -13,8 +13,10 @@ export default function Register() {
       const res = await API.post("/auth/register", form);
       console.log("Registration successful:", res.data);
       localStorage.setItem("token", res.data.token);
+      localStorage.setItem("user", JSON.stringify(res.data.user));
       setMsg("Registered successfully!");
     } catch (err) {
+      console.log("Registration error:", err);
       setMsg(err.response.data.message || "Error occurred");
     }
   };

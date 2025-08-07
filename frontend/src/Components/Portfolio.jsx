@@ -52,37 +52,36 @@ const Portfolio = () => {
   };
 
   const handleAdd = async () => {
-  if (!coin || !quantity || !buyPrice) return;
+    if (!coin || !quantity || !buyPrice) return;
 
-  const exists = portfolio.find((c) => c.id === coin);
-  if (exists) {
-    alert("Coin already in portfolio");
-    return;
-  }
+    const exists = portfolio.find((c) => c.id === coin);
+    if (exists) {
+      alert("Coin already in portfolio");
+      return;
+    }
 
-  const newCoin = {
-    id: coin,
-    quantity: parseFloat(quantity),
-    buyPrice: parseFloat(buyPrice),
+    const newCoin = {
+      id: coin,
+      quantity: parseFloat(quantity),
+      buyPrice: parseFloat(buyPrice),
+    };
+
+    const updatedPortfolio = [...portfolio, newCoin];
+
+    try {
+      await axios.post("http://localhost:5000/api/portfolio", {
+        userId,
+        coins: updatedPortfolio,
+      });
+
+      setPortfolio(updatedPortfolio);
+      setQuantity("");
+      setBuyPrice("");
+    } catch (error) {
+      console.error("Error saving portfolio:", error);
+      alert("Failed to save portfolio to database");
+    }
   };
-
-  const updatedPortfolio = [...portfolio, newCoin];
-
-  try {
-    await axios.post("http://localhost:5000/api/portfolio", {
-      userId,
-      coins: updatedPortfolio,
-    });
-
-    setPortfolio(updatedPortfolio);
-    setQuantity("");
-    setBuyPrice("");
-  } catch (error) {
-    console.error("Error saving portfolio:", error);
-    alert("Failed to save portfolio to database");
-  }
-};
-
 
   const getCurrentPrice = (coinId) => prices[coinId]?.inr || 0;
 

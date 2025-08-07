@@ -12,10 +12,10 @@ export default function Login() {
       console.log("Submitting login form:", form);
       const res = await API.post("/auth/login", form);
       localStorage.setItem("token", res.data.token);
-      console.log("User data:", res.data.user);
+
       localStorage.setItem("user", JSON.stringify(res.data.user));
-      console.log("Login successful:", res.data);
-      setMsg("Logged in successfully!");
+
+      window.location.href = "/"; // Redirect to home page
     } catch (err) {
       setMsg(err.response.data.message || "Error occurred");
     }

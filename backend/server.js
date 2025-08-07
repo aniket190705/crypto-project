@@ -10,7 +10,8 @@ import userRoutes from "./routes/User.js";
 import portfolioRoutes from "./routes/portfolio.js";
 import newsRoutes from "./routes/news.js";
 import marketRoutes from "./routes/market.js";
-import leaderboardRoutes from './routes/leaderboard.js'; // ✅ use .js extension!
+import leaderboardRoutes from './routes/leaderboard.js';
+import chat from './routes/chat.js' // ✅ use .js extension!
 dotenv.config();
 connectDB();
 
@@ -33,6 +34,7 @@ app.use("/api/news", newsRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/market", marketRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
+app.use("/api/chat", chat); // ✅ 
 app.get("/api/ping", (req, res) => {
   res.send("✅ Backend is working!");
 });

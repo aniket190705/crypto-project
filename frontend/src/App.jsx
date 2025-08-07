@@ -26,14 +26,26 @@ export default function App() {
   const inputRef = useRef(null);
   const [leaderboard, setLeaderboard] = useState([]);
   const [user, setUser] = useState(JSON.parse(localStorage.getItem("user")));
+  const [chatUser, setChatUser] = useState(null);
   // Fetch coins on first load
   useEffect(() => {
     fetchCoins();
+    console.log("User data:", user);
   }, []);
 
   // Join room and fetch price when selectedCoin changes
   useEffect(() => {
-    setChat([]); // Clear previous chat
+    setChat([]);
+    const fetchChat = async () => {
+      const res3 = await axios.get(
+        `http://localhost:5000/api/chat/${selectedCoin}`
+      );
+
+      setChat(res3.data);
+      console.log("Chat messages:", res3.data);
+    };
+    fetchChat();
+    console.log("use effect form selected coin");
     fetchPriceHistory(selectedCoin);
     socket.emit("joinRoom", selectedCoin);
   }, [selectedCoin]);
@@ -42,12 +54,12 @@ export default function App() {
   useEffect(() => {
     const handleMessage = (msg) => {
       setChat((prev) => [...prev, msg]);
-    };
 
-    socket.on("receiveMessage", handleMessage);
+      socket.on("receiveMessage", handleMessage);
 
-    return () => {
-      socket.off("receiveMessage", handleMessage);
+      return () => {
+        socket.off("receiveMessage", handleMessage);
+      };
     };
   }, []);
   useEffect(() => {
@@ -75,20 +87,46 @@ export default function App() {
       }
 
       const formatted = data.map((item) => ({
-        time: item.time,  // Already formatted in backend
+        time: item.time, // Already formatted in backend
         price: item.price,
       }));
-
 
       setPrices(formatted);
     } catch (error) {
       console.error("Error fetching price history:", error);
     }
   };
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!message.trim()) return;
+    console.log("Sending message:", message);
+    const res = await axios.post("http://localhost:5000/api/chat", {
+      room: selectedCoin,
+      message: message,
+      user: user.id,
+    });
+    console.log("Message sent:", res.data);
     socket.emit("sendMessage", { room: selectedCoin, message });
-    setMessage("");
+
+    // const fetchChat = async () => {
+    //   const res3 = await axios.get(
+    //     `http://localhost:5000/api/chat/${selectedCoin}`
+    //   );
+
+    //   setChat(res3.data);
+    //   console.log("Chat messages:", res3.data);
+    //   const chatUserId = res3.data.map((users) => users.user);
+
+    //   console.log("after sending the message", chatUserId); // Use current user from localStorage
+    //   chatUserId.forEach(async (userId) => {
+    //     const res2 = await axios.get(
+    //       `http://localhost:5000/api/user/${userId}`
+    //     );
+
+    //     setChatUser(() => [res2.data.username]);
+    //   });
+    // };
+    // fetchChat();
+    // console.log("outside the use effect");
     inputRef.current?.focus(); // retain focus
   };
 
@@ -133,7 +171,7 @@ export default function App() {
         <div className="border h-64 overflow-y-auto p-2 rounded bg-gray-100 mb-2">
           {chat.map((msg, i) => (
             <div key={i} className="mb-1">
-              • {msg}
+              • {msg.user.username}: {msg.message}
             </div>
           ))}
         </div>
