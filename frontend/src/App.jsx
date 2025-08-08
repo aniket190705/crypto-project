@@ -54,12 +54,12 @@ export default function App() {
   useEffect(() => {
     const handleMessage = (msg) => {
       setChat((prev) => [...prev, msg]);
+    };
 
-      socket.on("receiveMessage", handleMessage);
+    socket.on("receiveMessage", handleMessage);
 
-      return () => {
-        socket.off("receiveMessage", handleMessage);
-      };
+    return () => {
+      socket.off("receiveMessage", handleMessage);
     };
   }, []);
   useEffect(() => {
@@ -98,36 +98,29 @@ export default function App() {
   };
   const handleSendMessage = async () => {
     if (!message.trim()) return;
-    console.log("Sending message:", message);
+
     const res = await axios.post("http://localhost:5000/api/chat", {
       room: selectedCoin,
       message: message,
       user: user.id,
     });
+
+    // Emit full message object so other users see it
+
+    // setChat((prev) => [...prev, res.data]);
     console.log("Message sent:", res.data);
-    socket.emit("sendMessage", { room: selectedCoin, message });
+    setMessage("");
+    const fetchChat = async () => {
+      const res3 = await axios.get(
+        `http://localhost:5000/api/chat/${selectedCoin}`
+      );
 
-    // const fetchChat = async () => {
-    //   const res3 = await axios.get(
-    //     `http://localhost:5000/api/chat/${selectedCoin}`
-    //   );
-
-    //   setChat(res3.data);
-    //   console.log("Chat messages:", res3.data);
-    //   const chatUserId = res3.data.map((users) => users.user);
-
-    //   console.log("after sending the message", chatUserId); // Use current user from localStorage
-    //   chatUserId.forEach(async (userId) => {
-    //     const res2 = await axios.get(
-    //       `http://localhost:5000/api/user/${userId}`
-    //     );
-
-    //     setChatUser(() => [res2.data.username]);
-    //   });
-    // };
-    // fetchChat();
-    // console.log("outside the use effect");
-    inputRef.current?.focus(); // retain focus
+      setChat(res3.data);
+      console.log("Chat messages:", res3.data);
+    };
+    fetchChat();
+    socket.emit("sendMessage", res.data);
+    inputRef.current?.focus();
   };
 
   const DashboardPage = () => (

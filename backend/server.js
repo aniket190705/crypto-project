@@ -50,9 +50,11 @@ io.on("connection", (socket) => {
     console.log(`User joined room: ${room}`);
   });
 
-  socket.on("sendMessage", ({ room, message }) => {
-    io.to(room).emit("receiveMessage", message);
+  socket.on("sendMessage", (msg) => {
+    // Broadcast to the same room with the full message object
+    io.to(msg.room).emit("receiveMessage", msg);
   });
+
 
   socket.on("disconnect", () => {
     console.log("❌ Client disconnected:", socket.id);
