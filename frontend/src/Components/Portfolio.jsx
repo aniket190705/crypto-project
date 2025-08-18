@@ -19,7 +19,7 @@ const Portfolio = () => {
     "dogecoin",
     "polkadot",
   ];
-  const userId = JSON.parse(localStorage.getItem("user")).id; // Replace with real user id if logged in
+  const userId = JSON.parse(localStorage.getItem("user")).id;
 
   useEffect(() => {
     fetchPrices();
@@ -30,11 +30,6 @@ const Portfolio = () => {
   }, []);
 
   useEffect(() => {
-    fetchPrices();
-  }, []);
-
-  useEffect(() => {
-    // Recalculate total investment whenever portfolio changes
     const total = portfolio.reduce(
       (sum, coin) => sum + coin.buyPrice * coin.quantity,
       0
@@ -86,10 +81,11 @@ const Portfolio = () => {
   const getCurrentPrice = (coinId) => prices[coinId]?.inr || 0;
 
   return (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold mb-4">📊 My Portfolio</h2>
+    <div className="p-6 bg-gray-50 rounded-lg shadow-md">
+      <h2 className="text-2xl font-bold mb-6 text-gray-800">📊 My Portfolio</h2>
 
-      <div className="mb-6 grid md:grid-cols-3 gap-4">
+      {/* Form */}
+      <div className="mb-6 grid md:grid-cols-4 gap-4 items-center">
         <select
           value={coin}
           onChange={(e) => setCoin(e.target.value)}
@@ -118,19 +114,21 @@ const Portfolio = () => {
         />
         <button
           onClick={handleAdd}
-          className="bg-blue-600 text-white px-4 py-2 rounded mt-2 md:mt-0"
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
         >
-          ➕ Add to Portfolio
+          ➕ Add
         </button>
       </div>
 
-      <p className="text-lg font-semibold mb-4">
-        Total Investment: ₹{totalInvestment.toFixed(2)}
+      {/* Total Investment */}
+      <p className="text-lg font-semibold mb-4 text-gray-700">
+        Total Investment: <span className="text-blue-600">₹{totalInvestment.toFixed(2)}</span>
       </p>
 
-      <div className="overflow-x-auto">
-        <table className="w-full border">
-          <thead className="bg-gray-200">
+      {/* Table */}
+      <div className="overflow-x-auto rounded-lg shadow">
+        <table className="w-full border-collapse">
+          <thead className="bg-gray-200 text-gray-700">
             <tr>
               <th className="p-2 text-left">Coin</th>
               <th className="p-2 text-right">Quantity</th>
@@ -152,21 +150,30 @@ const Portfolio = () => {
               const portfolioPercent = (invested / totalInvestment) * 100;
 
               return (
-                <tr key={coin.id} className="border-t">
-                  <td className="p-2">{coin.id.toUpperCase()}</td>
+                <tr
+                  key={coin.id}
+                  className="border-t hover:bg-gray-50 transition"
+                >
+                  <td className="p-2 font-semibold">{coin.id.toUpperCase()}</td>
                   <td className="p-2 text-right">{coin.quantity}</td>
                   <td className="p-2 text-right">₹{coin.buyPrice}</td>
                   <td className="p-2 text-right">₹{invested.toFixed(2)}</td>
                   <td className="p-2 text-right">₹{currentPrice}</td>
                   <td className="p-2 text-right">₹{value.toFixed(2)}</td>
                   <td
-                    className={`p-2 text-right ${
+                    className={`p-2 text-right font-semibold ${
                       profitLossPercent >= 0 ? "text-green-600" : "text-red-600"
                     }`}
                   >
                     {profitLossPercent.toFixed(2)}%
                   </td>
-                  <td className="p-2 text-right">
+                  <td
+                    className={`p-2 text-right ${
+                      portfolioPercent >= 50
+                        ? "text-blue-600 font-semibold"
+                        : "text-gray-600"
+                    }`}
+                  >
                     {portfolioPercent.toFixed(2)}%
                   </td>
                   <td className="p-2 text-right">
@@ -184,6 +191,13 @@ const Portfolio = () => {
                 </tr>
               );
             })}
+            {portfolio.length === 0 && (
+              <tr>
+                <td colSpan="9" className="text-center p-4 text-gray-500">
+                  No coins in portfolio yet.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

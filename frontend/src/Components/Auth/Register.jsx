@@ -14,45 +14,74 @@ export default function Register() {
       console.log("Registration successful:", res.data);
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data.user));
-      setMsg("Registered successfully!");
+      setMsg("✅ Registered successfully!");
     } catch (err) {
       console.log("Registration error:", err);
-      setMsg(err.response.data.message || "Error occurred");
+      setMsg(err.response?.data?.message || "❌ Error occurred");
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-900">
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black px-4">
       <form
         onSubmit={handleSubmit}
-        className="bg-white p-6 rounded shadow-md w-80"
+        className="bg-white/10 backdrop-blur-xl border border-gray-700 p-8 rounded-2xl shadow-2xl w-full max-w-md"
       >
-        <h2 className="text-2xl font-bold mb-4">Register</h2>
+        {/* Heading */}
+        <h2 className="text-3xl font-extrabold text-center text-white mb-6 tracking-wide">
+          Create Account
+        </h2>
+
+        {/* Username */}
         <input
           type="text"
-          placeholder="Username"
-          className="w-full mb-2 px-3 py-2 border rounded"
+          placeholder="👤 Username"
+          className="w-full mb-4 px-4 py-3 bg-gray-900/70 text-white border border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
           value={form.username}
           onChange={(e) => setForm({ ...form, username: e.target.value })}
         />
+
+        {/* Email */}
         <input
           type="email"
-          placeholder="Email"
-          className="w-full mb-2 px-3 py-2 border rounded"
+          placeholder="📧 Email"
+          className="w-full mb-4 px-4 py-3 bg-gray-900/70 text-white border border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
           value={form.email}
           onChange={(e) => setForm({ ...form, email: e.target.value })}
         />
+
+        {/* Password */}
         <input
           type="password"
-          placeholder="Password"
-          className="w-full mb-4 px-3 py-2 border rounded"
+          placeholder="🔑 Password"
+          className="w-full mb-6 px-4 py-3 bg-gray-900/70 text-white border border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
           value={form.password}
           onChange={(e) => setForm({ ...form, password: e.target.value })}
         />
-        <button className="bg-blue-600 text-white w-full py-2 rounded">
-          Register
+
+        {/* Button */}
+        <button className="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl shadow-lg hover:opacity-90 transition-all duration-300">
+          Register 🚀
         </button>
-        {msg && <p className="mt-2 text-sm text-center text-red-600">{msg}</p>}
+
+        {/* Message */}
+        {msg && (
+          <p
+            className={`mt-4 text-center font-medium ${
+              msg.includes("success") ? "text-green-400" : "text-red-400"
+            }`}
+          >
+            {msg}
+          </p>
+        )}
+
+        {/* Footer link */}
+        <p className="mt-6 text-gray-400 text-sm text-center">
+          Already have an account?{" "}
+          <a href="/login" className="text-blue-400 hover:underline">
+            Login here
+          </a>
+        </p>
       </form>
     </div>
   );
