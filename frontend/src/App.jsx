@@ -14,6 +14,7 @@ import Portfolio from "./Components/Portfolio";
 import Leaderboard from "./Components/Leaderboard";
 import Register from "./Components/Auth/Register";
 import Login from "./Components/Auth/Login";
+
 const socket = io("http://localhost:5000"); // replace with your backend URL
 
 export default function App() {
@@ -26,7 +27,7 @@ export default function App() {
   const inputRef = useRef(null);
   const [leaderboard, setLeaderboard] = useState([]);
   const [user, setUser] = useState(JSON.parse(localStorage.getItem("user")));
-  const [chatUser, setChatUser] = useState(null);
+
   // Fetch coins on first load
   useEffect(() => {
     fetchCoins();
@@ -40,12 +41,9 @@ export default function App() {
       const res3 = await axios.get(
         `http://localhost:5000/api/chat/${selectedCoin}`
       );
-
       setChat(res3.data);
-      console.log("Chat messages:", res3.data);
     };
     fetchChat();
-    console.log("use effect form selected coin");
     fetchPriceHistory(selectedCoin);
     socket.emit("joinRoom", selectedCoin);
   }, [selectedCoin]);
@@ -55,13 +53,12 @@ export default function App() {
     const handleMessage = (msg) => {
       setChat((prev) => [...prev, msg]);
     };
-
     socket.on("receiveMessage", handleMessage);
-
     return () => {
       socket.off("receiveMessage", handleMessage);
     };
   }, []);
+
   useEffect(() => {
     const fetchLeaderboard = async () => {
       const { data } = await axios.get("http://localhost:5000/api/leaderboard");
@@ -69,6 +66,7 @@ export default function App() {
     };
     fetchLeaderboard();
   }, []);
+
   const fetchCoins = async () => {
     const { data } = await axios.get("http://localhost:5000/api/market/coins");
     setCoins(data.slice(0, 50));
@@ -80,14 +78,13 @@ export default function App() {
         `http://localhost:5000/api/market/price-history/${coin}`
       );
 
-      // `data` is an array, not an object with `.prices`
       if (!Array.isArray(data)) {
         console.error("Unexpected data format:", data);
         return;
       }
 
       const formatted = data.map((item) => ({
-        time: item.time, // Already formatted in backend
+        time: item.time,
         price: item.price,
       }));
 
@@ -96,6 +93,7 @@ export default function App() {
       console.error("Error fetching price history:", error);
     }
   };
+
   const handleSendMessage = async () => {
     if (!message.trim()) return;
 
@@ -105,18 +103,12 @@ export default function App() {
       user: user.id,
     });
 
-    // Emit full message object so other users see it
-
-    // setChat((prev) => [...prev, res.data]);
-    console.log("Message sent:", res.data);
     setMessage("");
     const fetchChat = async () => {
       const res3 = await axios.get(
         `http://localhost:5000/api/chat/${selectedCoin}`
       );
-
       setChat(res3.data);
-      console.log("Chat messages:", res3.data);
     };
     fetchChat();
     socket.emit("sendMessage", res.data);
@@ -125,12 +117,12 @@ export default function App() {
 
   const DashboardPage = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div>
+      <div className="bg-white p-4 rounded-xl shadow-lg">
         <label className="block font-semibold mb-2">Select Coin</label>
         <select
           value={selectedCoin}
           onChange={(e) => setSelectedCoin(e.target.value)}
-          className="w-full p-2 border rounded"
+          className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-400"
         >
           {coins.map((coin) => (
             <option key={coin.id} value={coin.id}>
@@ -157,30 +149,36 @@ export default function App() {
         </div>
       </div>
 
-      <div>
+      <div className="bg-white p-4 rounded-xl shadow-lg flex flex-col">
         <h2 className="text-xl font-semibold mb-2">
           Live Chat - #{selectedCoin}
         </h2>
-        <div className="border h-64 overflow-y-auto p-2 rounded bg-gray-100 mb-2">
+        <div className="border h-64 overflow-y-auto p-2 rounded bg-gray-50 mb-2 space-y-2">
           {chat.map((msg, i) => (
-            <div key={i} className="mb-1">
-              • {msg.user.username}: {msg.message}
+            <div
+              key={i}
+              className={`p-2 rounded-lg text-sm ${
+                msg.user.username === user?.username
+                  ? "bg-blue-500 text-white self-end"
+                  : "bg-gray-200"
+              }`}
+            >
+              <strong>{msg.user.username}:</strong> {msg.message}
             </div>
           ))}
         </div>
-        <div className="flex">
+        <div className="flex mt-auto">
           <input
             ref={inputRef}
             type="text"
-            className="flex-1 p-2 border rounded-l outline-none"
+            className="flex-1 p-2 border rounded-l-lg outline-none focus:ring-2 focus:ring-blue-400"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Type a message"
-            autoFocus
           />
           <button
             onClick={handleSendMessage}
-            className="bg-blue-600 text-white px-4 rounded-r"
+            className="bg-blue-600 text-white px-4 rounded-r-lg hover:bg-blue-700"
           >
             Send
           </button>
@@ -190,69 +188,68 @@ export default function App() {
   );
 
   const PortfolioPage = () => (
-    <div>
+    <div className="bg-white p-6 rounded-xl shadow-lg">
       <h2 className="text-2xl font-bold mb-4">My Portfolio</h2>
       <Portfolio />
     </div>
   );
+
   const NewsPage = () => (
-    <div>
+    <div className="bg-white p-6 rounded-xl shadow-lg">
       <h2 className="text-2xl font-bold mb-4">Crypto News</h2>
       <News />
     </div>
   );
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      <header className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">CryptoStack</h1>
-        <h3>logged in as {user?.username}</h3>
-        <nav className="space-x-4">
-          <button
-            onClick={() => setActivePage("dashboard")}
-            className="font-medium hover:underline"
-          >
-            Dashboard
-          </button>
-          <button
-            onClick={() => setActivePage("portfolio")}
-            className="font-medium hover:underline"
-          >
-            Portfolio
-          </button>
-          <button
-            onClick={() => setActivePage("leaderboard")}
-            className="font-medium hover:underline"
-          >
-            Leaderboard
-          </button>
-          <button
-            onClick={() => setActivePage("news")}
-            className="font-medium hover:underline"
-          >
-            News
-          </button>
-          <button
-            onClick={() => setActivePage("login")}
-            className="font-medium hover:underline"
-          >
-            Login
-          </button>
-          <button
-            onClick={() => setActivePage("register")}
-            className="font-medium hover:underline"
-          >
-            Register
-          </button>
+    <div className="min-h-screen bg-gradient-to-br from-gray-100 via-gray-200 to-gray-300 p-6">
+      <header className="sticky top-0 bg-white shadow-md rounded-xl px-6 py-4 flex justify-between items-center mb-6 z-10">
+        <h1 className="text-3xl font-bold text-blue-600">CryptoStack</h1>
+        <h3 className="text-sm text-gray-600">
+          logged in as <span className="font-semibold">{user?.username}</span>
+        </h3>
+        <nav className="space-x-2">
+          {[
+            "dashboard",
+            "portfolio",
+            "leaderboard",
+            "news",
+            "login",
+            "register",
+          ].map((page) => (
+            <button
+              key={page}
+              onClick={() => setActivePage(page)}
+              className={`px-3 py-1 rounded-full font-medium transition ${
+                activePage === page
+                  ? "bg-blue-600 text-white shadow-md"
+                  : "hover:bg-blue-100 text-gray-700"
+              }`}
+            >
+              {page.charAt(0).toUpperCase() + page.slice(1)}
+            </button>
+          ))}
         </nav>
       </header>
 
       {activePage === "dashboard" && <DashboardPage />}
       {activePage === "portfolio" && <PortfolioPage />}
-      {activePage === "leaderboard" && <Leaderboard data={leaderboard} />}
+      {activePage === "leaderboard" && (
+        <div className="bg-white p-6 rounded-xl shadow-lg">
+          <Leaderboard data={leaderboard} />
+        </div>
+      )}
       {activePage === "news" && <NewsPage />}
-      {activePage === "login" && <Login />}
-      {activePage === "register" && <Register />}
+      {activePage === "login" && (
+        <div className="bg-white p-6 rounded-xl shadow-lg">
+          <Login />
+        </div>
+      )}
+      {activePage === "register" && (
+        <div className="bg-white p-6 rounded-xl shadow-lg">
+          <Register />
+        </div>
+      )}
     </div>
   );
 }
